@@ -4,6 +4,8 @@
 #include "SSD1306Ascii.h"
 #include "SSD1306AsciiWire.h"
 
+int buzzer = 12; // Pin of the active buzzer
+
 // SSD1306 display
 #define I2C_ADDRESS 0x3C
 SSD1306AsciiWire oled;
@@ -42,7 +44,7 @@ void humanTurn(){
       board[row][col] = 3; // Set the corresponding element in the board array to 3
 	    printBoard(); // print board to console
       displayBoard(); // display board on oled display
-
+      sound(1,100); // play the sound
       player = 2; // Set the player turn to 2 (computer)
    	  moveCount++; // Increase move count
     }
@@ -99,7 +101,8 @@ void computer_move(int i, int j) {
     delay(500); // Add a small delay 
 	  printBoard(); // print board to console
     displayBoard(); // display board on oled display
-   player = 1; // Set the player turn to 1 (human)
+    sound(2,100); // play the sound
+    player = 1; // Set the player turn to 1 (human)
     moveCount++; // Increase move count
   }
 }
@@ -228,18 +231,7 @@ void displayBoard() {
   }
 
 }
-  
-void setup() {
-  Serial.begin(9600); // Set baud rate to match the serial monitor
-  randomSeed(analogRead(0)); // randomize using noise from analog pin 5
 
-  // initialize display
-  Wire.begin();         
-  oled.begin(&Adafruit128x64, I2C_ADDRESS);
-  oled.set400kHz();  
-  oled.setFont(Adafruit5x7);  
-
-}
 
 int checkWinner() {
   for (int i = 0; i < 3; i++) {
@@ -263,25 +255,52 @@ void display_winner(int winner) {
   if (winner == 3) {
     Serial.println("\nYOU WIN!"); 
     oled.println("\nYOU WIN!"); 
+    sound(1,500); // play the sound
+
   }
   else {
     Serial.println("\nARDUINO WINS!"); 
     oled.println("\nARDUINO WINS!"); 
-   }
+    sound(4,500); // play the sound
+    }
  }
 
 void display_tie() {
   Serial.println("\nNO WINNER!"); 
   oled.println("\nNO WINNER!"); 
+  sound(3,500); // play the sound
 
  }
 
+void sound(int f, int t) {
+   //output an frequency
+   for(int i=0;i<int(t/f);i++) {
+    digitalWrite(buzzer,HIGH);
+    delay(f);//wait for 1ms
+    digitalWrite(buzzer,LOW);
+    delay(f);//wait for 1ms
+    }
+  }
+
 void reset() {
-    delay(4000); 
+    delay(3000); 
     wdt_enable(WDTO_15MS); // Reset to restart 
     while (true) {}
     }
+  
+void setup() {
+  Serial.begin(9600); // Set baud rate to match the serial monitor
+  randomSeed(analogRead(0)); // randomize using noise from analog pin 5
 
+ pinMode(buzzer,OUTPUT);//initialize the buzzer pin as an output
+
+  // initialize display
+  Wire.begin();         
+  oled.begin(&Adafruit128x64, I2C_ADDRESS);
+  oled.set400kHz();  
+  oled.setFont(Adafruit5x7);  
+
+}
 void loop() {
   Serial.println("\nNew game"); 
 
